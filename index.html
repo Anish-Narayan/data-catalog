@@ -5,6 +5,27 @@
 <title>Payment Integrity Data Catalog</title>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
+/* Custom Properties for Colors (Light Dull Orange & Grey Palette) */
+:root {
+    --clr-bg-primary: #fcfafa; /* Very light, slightly warm off-white background */
+    --clr-bg-panel: #ffffff; /* Pure white for main content areas and panels */
+    --clr-border-light: #ececec; /* Light grey for subtle borders */
+    --clr-border-medium: #e0e0e0; /* Medium grey for more prominent borders */
+    --clr-text-dark: #333333; /* Dark grey for primary text */
+    --clr-text-medium: #555555; /* Medium grey for secondary text/inactive links */
+    --clr-text-light: #888888; /* Light grey for sub-items or less important text */
+    --clr-accent-main: #e9a37c; /* Main dull orange accent */
+    --clr-accent-light: #f2e7e0; /* Very light dull orange for hover backgrounds */
+    --clr-accent-dark: #d38b6a; /* Darker dull orange for active states/strong accents */
+    --clr-heading-main: #4a4a4a; /* Dark grey for main headings */
+    --clr-heading-secondary: #6a6a6a; /* Slightly lighter grey for subheadings */
+    --clr-code-bg: #f8f8f8; /* Light grey for code block backgrounds */
+    --clr-code-border: #e0e0e0; /* Grey border for code blocks */
+    --clr-link-default: #8a6c5a; /* A brownish-orange for general links */
+    --clr-link-hover: #a07a66; /* Slightly lighter/more saturated on link hover */
+    --clr-table-stripe: #f9f9f9; /* Light grey for alternating table row backgrounds */
+}
+
 /* Reset and Base Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,16 +33,16 @@ body {
     display: flex;
     flex-direction: column; /* Changed to column for header above content */
     height: 100vh;
-    color: #333;
-    background-color: #f9fbfd;
+    color: var(--clr-text-dark); /* Primary text color */
+    background-color: var(--clr-bg-primary); /* Main page background */
 }
 
 /* Header */
 .header {
-    background-color: #fff;
-    padding: 10px 20px;
-    border-bottom: 1px solid #eee;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    background-color: var(--clr-bg-panel); /* White header background */
+    padding: 12px 25px; /* Adjusted padding for a professional feel */
+    border-bottom: 1px solid var(--clr-border-light); /* Light border at the bottom */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03); /* Softer, more diffused shadow */
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -29,8 +50,9 @@ body {
 }
 .header h1 {
     margin: 0;
-    font-size: 20px;
-    color: #0056b3;
+    font-size: 22px; /* Slightly larger header title */
+    color: var(--clr-accent-dark); /* Darker dull orange for the title */
+    font-weight: 600; /* A bit bolder title */
 }
 
 /* Main Content Container */
@@ -42,11 +64,11 @@ body {
 /* Left Sidebar Navigation */
 #left {
     width: 280px;
-    border-right: 1px solid #e0e0e0;
-    padding: 15px;
+    border-right: 1px solid var(--clr-border-medium); /* Medium grey right border */
+    padding: 20px; /* Increased padding */
     overflow-y: auto;
-    background-color: #fff;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.02);
+    background-color: var(--clr-bg-panel); /* White sidebar background */
+    box-shadow: 2px 0 8px rgba(0,0,0,0.03); /* Softer shadow for elevation */
     display: flex;
     flex-direction: column;
     flex-shrink: 0; /* Prevent shrinking when content is wide */
@@ -55,143 +77,158 @@ body {
 /* Right Content Panel */
 #right {
     flex: 1;
-    padding: 20px 30px;
+    padding: 25px 35px; /* Increased padding for better content spacing */
     overflow-y: auto;
-    background-color: #fff;
+    background-color: var(--clr-bg-panel); /* White content background */
 }
 
 /* Search Input */
 input[type="text"] {
     width: calc(100% - 20px); /* Adjust for padding */
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
+    padding: 12px; /* More padding for a softer touch */
+    margin-bottom: 20px; /* Increased bottom margin */
+    border: 1px solid var(--clr-border-medium); /* Medium grey border */
+    border-radius: 6px; /* Slightly more rounded corners */
+    font-size: 15px; /* Slightly larger font size */
     box-sizing: border-box; /* Include padding in width */
     outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Smooth transition on focus */
 }
 input[type="text"]:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    border-color: var(--clr-accent-main); /* Dull orange border on focus */
+    box-shadow: 0 0 0 0.2rem rgba(233, 163, 124, 0.25); /* Dull orange shadow on focus */
 }
 
 /* Navigation Links */
 #nav a {
     display: block;
-    padding: 8px 10px;
+    padding: 10px 12px; /* Adjusted padding */
     text-decoration: none;
-    color: #337ab7;
-    border-radius: 4px;
-    margin-bottom: 4px;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    color: var(--clr-text-medium); /* Medium grey for default links */
+    border-radius: 5px; /* Slightly more rounded corners */
+    margin-bottom: 6px; /* Increased bottom margin */
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; /* Smooth transitions */
     font-size: 15px;
     white-space: nowrap; /* Prevent wrapping */
     overflow: hidden; /* Hide overflow */
     text-overflow: ellipsis; /* Add ellipsis for overflow */
 }
 #nav a:hover {
-    background-color: #e6f2ff;
-    color: #0056b3;
+    background-color: var(--clr-accent-light); /* Very light dull orange on hover */
+    color: var(--clr-accent-dark); /* Darker dull orange on hover */
 }
 #nav a.active {
-    background-color: #007bff;
-    color: #fff;
-    font-weight: bold;
+    background-color: var(--clr-accent-main); /* Main dull orange for active link */
+    color: var(--clr-bg-panel); /* White text for active link */
+    font-weight: 600; /* Bolder for active link */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow for active state */
+}
+/* Styling for sub-items in the navigation */
+#nav a[style*="padding-left: 30px"] {
+    color: var(--clr-text-light); /* Lighter grey for sub-items */
+    font-size: 14px;
+}
+#nav a[style*="padding-left: 30px"]:hover {
+    color: var(--clr-accent-dark); /* Darker dull orange on hover for sub-items */
 }
 
 /* Content Area Styling */
 #right h1 {
-    color: #004085;
-    border-bottom: 2px solid #e0e0e0;
-    padding-bottom: 10px;
+    color: var(--clr-heading-main); /* Dark grey for main headings */
+    border-bottom: 2px solid var(--clr-border-medium); /* Medium grey bottom border */
+    padding-bottom: 12px; /* Adjusted padding */
     margin-top: 0;
-    font-size: 28px;
+    font-size: 30px; /* Slightly larger main heading */
+    font-weight: 600; /* Bolder main heading */
 }
 #right h2 {
-    color: #0056b3;
-    border-bottom: 1px dashed #e0e0e0;
-    padding-bottom: 8px;
-    margin-top: 25px;
-    font-size: 22px;
+    color: var(--clr-heading-secondary); /* Slightly lighter grey for subheadings */
+    border-bottom: 1px dashed var(--clr-border-light); /* Light dashed border */
+    padding-bottom: 10px; /* Adjusted padding */
+    margin-top: 30px; /* Increased margin */
+    font-size: 24px; /* Slightly larger subheadings */
+    font-weight: 500;
 }
 #right h3 {
-    color: #007bff;
-    margin-top: 20px;
-    font-size: 18px;
+    color: var(--clr-accent-main); /* Main dull orange for tertiary headings */
+    margin-top: 25px; /* Increased margin */
+    font-size: 20px; /* Slightly larger tertiary headings */
+    font-weight: 500;
 }
 #right p {
-    line-height: 1.6;
-    margin-bottom: 10px;
+    line-height: 1.7; /* Increased line-height for better readability */
+    margin-bottom: 12px; /* Adjusted margin */
 }
 #right ul, #right ol {
-    margin-left: 20px;
-    margin-bottom: 10px;
+    margin-left: 25px; /* Slightly more indentation */
+    margin-bottom: 12px;
 }
 #right li {
-    margin-bottom: 5px;
+    margin-bottom: 6px;
 }
 
 /* Tables */
 #right table {
     width: 100%;
     border-collapse: collapse;
-    margin: 20px 0;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0,0,0,0.05);
-    border-radius: 8px; /* Rounded corners for tables */
-    overflow: hidden; /* Ensures rounded corners are visible */
+    margin: 25px 0; /* Increased margin */
+    background-color: var(--clr-bg-panel); /* White table background */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06); /* Softer, slightly larger shadow for tables */
+    border-radius: 10px; /* More rounded corners for tables */
+    overflow: hidden; /* Ensures rounded corners are visible with borders */
 }
 #right th, #right td {
-    border: 1px solid #ddd;
-    padding: 12px 15px;
+    border: 1px solid var(--clr-border-light); /* Light grey borders for cells */
+    padding: 14px 18px; /* More padding in cells */
     text-align: left;
     vertical-align: top;
-    font-size: 14px;
+    font-size: 14.5px; /* Slightly larger font for table text */
 }
 #right th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-    color: #555;
+    background-color: var(--clr-bg-primary); /* Primary background color for table headers */
+    font-weight: 600; /* Bolder headers */
+    color: var(--clr-heading-secondary); /* Secondary heading color for headers */
     text-transform: uppercase; /* Make headers uppercase */
 }
 #right tr:nth-child(even) {
-    background-color: #f9f9f9;
+    background-color: var(--clr-table-stripe); /* Light grey for even rows */
 }
 #right tr:hover {
-    background-color: #f1f1f1;
+    background-color: var(--clr-accent-light); /* Very light dull orange on row hover */
 }
 
 /* Code blocks (for examples) */
 #right pre {
-    background-color: #e8f0f7; /* Lighter blue background for code */
-    border: 1px solid #cce0f0; /* Matching border */
-    border-left: 5px solid #007bff; /* Thicker, prominent left border */
-    padding: 15px;
-    margin: 15px 0;
+    background-color: var(--clr-code-bg); /* Light grey background for code */
+    border: 1px solid var(--clr-code-border); /* Matching grey border */
+    border-left: 5px solid var(--clr-accent-main); /* Thicker, main dull orange left border */
+    padding: 18px; /* More padding */
+    margin: 20px 0; /* Increased margin */
     overflow-x: auto;
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-    font-size: 13px;
-    line-height: 1.5;
-    color: #212529; /* Darker text for readability */
-    border-radius: 6px; /* Slightly more rounded */
+    font-size: 13.5px; /* Slightly larger font */
+    line-height: 1.6; /* Increased line-height */
+    color: var(--clr-text-dark); /* Dark text for readability */
+    border-radius: 8px; /* More rounded corners */
 }
 #right code {
-    background-color: #e0e0e0;
-    padding: 2px 4px;
-    border-radius: 3px;
+    background-color: var(--clr-code-border); /* Grey background for inline code */
+    padding: 3px 6px; /* Slightly more padding */
+    border-radius: 4px; /* More rounded */
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
     font-size: 13px;
-    color: #d14;
+    color: var(--clr-text-dark); /* Dark text for inline code */
 }
 
 /* Anchors within text */
 #right a {
-    color: #007bff;
+    color: var(--clr-link-default); /* Brownish-orange for text links */
     text-decoration: none;
+    transition: color 0.2s ease; /* Smooth color transition on hover */
 }
 #right a:hover {
     text-decoration: underline;
+    color: var(--clr-link-hover); /* Slightly lighter/more saturated on hover */
 }
 </style>
 </head>
@@ -246,7 +283,7 @@ function renderList(filter = "") {
             if (d.title.startsWith("  ")) {
                 a.style.paddingLeft = '30px';
                 a.style.fontSize = '14px';
-                a.style.color = '#555';
+                a.style.color = 'var(--clr-text-light)'; /* Use CSS variable for sub-item color */
             }
             a.onclick = (event) => {
                 event.preventDefault(); // Prevent default link behavior for left nav clicks
@@ -364,4 +401,4 @@ rightPanel.addEventListener('click', function(event) {
 });
 </script>
 </body>
-</html>
+</html>```
