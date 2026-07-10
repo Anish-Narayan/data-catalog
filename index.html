@@ -314,8 +314,7 @@ async function loadDoc(fileWithAnchor, clickedLink = null) {
 search.oninput = () => renderList(search.value);
 renderList();
 // Load the initial home document
-loadDoc("README.md", nav.querySelector('a[data-file="README.md"]'));
-
+loadDoc("readme/README.md", nav.querySelector('a[data-file="readme/README.md"]'));
 // --- GLOBAL EVENT DELEGATION FOR LINKS WITHIN THE RIGHT PANEL ---
 rightPanel.addEventListener('click', function(event) {
     let target = event.target;
