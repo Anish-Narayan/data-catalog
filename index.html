@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Payment Integrity Data Catalog</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+/* Reset and Base Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column; /* Changed to column for header above content */
+    height: 100vh;
+    color: #333;
+    background-color: #f9fbfd;
+}
+
+/* Header */
+.header {
+    background-color: #fff;
+    padding: 10px 20px;
+    border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+}
+.header h1 {
+    margin: 0;
+    font-size: 20px;
+    color: #0056b3;
+}
+
+/* Main Content Container */
+.container {
+    display: flex;
+    flex: 1; /* Allows it to take remaining vertical space */
+}
+
+/* Left Sidebar Navigation */
+#left {
+    width: 280px;
+    border-right: 1px solid #e0e0e0;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #fff;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.02);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0; /* Prevent shrinking when content is wide */
+}
+
+/* Right Content Panel */
+#right {
+    flex: 1;
+    padding: 20px 30px;
+    overflow-y: auto;
+    background-color: #fff;
+}
+
+/* Search Input */
+input[type="text"] {
+    width: calc(100% - 20px); /* Adjust for padding */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box; /* Include padding in width */
+    outline: none;
+}
+input[type="text"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Navigation Links */
+#nav a {
+    display: block;
+    padding: 8px 10px;
+    text-decoration: none;
+    color: #337ab7;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    font-size: 15px;
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflow */
+}
+#nav a:hover {
+    background-color: #e6f2ff;
+    color: #0056b3;
+}
+#nav a.active {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Content Area Styling */
+#right h1 {
+    color: #004085;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+    margin-top: 0;
+    font-size: 28px;
+}
+#right h2 {
+    color: #0056b3;
+    border-bottom: 1px dashed #e0e0e0;
+    padding-bottom: 8px;
+    margin-top: 25px;
+    font-size: 22px;
+}
+#right h3 {
+    color: #007bff;
+    margin-top: 20px;
+    font-size: 18px;
+}
+#right p {
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+#right ul, #right ol {
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+#right li {
+    margin-bottom: 5px;
+}
+
+/* Tables */
+#right table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    border-radius: 8px; /* Rounded corners for tables */
+    overflow: hidden; /* Ensures rounded corners are visible */
+}
+#right th, #right td {
+    border: 1px solid #ddd;
+    padding: 12px 15px;
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+}
+#right th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #555;
+    text-transform: uppercase; /* Make headers uppercase */
+}
+#right tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+#right tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Code blocks (for examples) */
+#right pre {
+    background-color: #e8f0f7; /* Lighter blue background for code */
+    border: 1px solid #cce0f0; /* Matching border */
+    border-left: 5px solid #007bff; /* Thicker, prominent left border */
+    padding: 15px;
+    margin: 15px 0;
+    overflow-x: auto;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #212529; /* Darker text for readability */
+    border-radius: 6px; /* Slightly more rounded */
+}
+#right code {
+    background-color: #e0e0e0;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 13px;
+    color: #d14;
+}
+
+/* Anchors within text */
+#right a {
+    color: #007bff;
+    text-decoration: none;
+}
+#right a:hover {
+    text-decoration: underline;
+}
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>Payment Integrity Data Catalog</h1>
+</div>
+<div class="container">
+    <div id="left">
+        <input type="text" id="search" placeholder="Search documents...">
+        <div id="nav"></div>
+    </div>
+    <div id="right">
+        <h2>Select a document from the left navigation.</h2>
+        <p>This catalog helps you explore various data assets across different clients.</p>
+    </div>
+</div>
+<script>
+const docs = [
+    { title: "Home", file: "README.md" },
+    { title: "Acme Health (Client)", file: "clients/acme_health.md" },
+    { title: "  CLAIM_HEADER", file: "clients/claim_header.md" },
+    { title: "  CLAIM_LINE", file: "clients/claim_line.md" },
+    { title: "  MEMBER_DEMOGRAPHICS", file: "clients/acme_health_member_demographics.md" },
+    { title: "Bright Care (Client)", file: "clients/bright_care.md" },
+    { title: "  PATIENT_VISITS", file: "clients/bright_care_patient_visits.md" },
+    { title: "  PROVIDERS", file: "clients/bright_care_providers.md" },
+    { title: "MedAssist (Client)", file: "clients/med_assist.md" },
+    { title: "  PHARMACY_CLAIMS", file: "clients/med_assist_pharmacy_claims.md" },
+    { title: "  DRUG_CODES", file: "clients/med_assist_drug_codes.md" },
+    { title: "Premier Insurers (Client)", file: "clients/premier_insurers.md" },
+    { title: "  POLICY_HOLDERS", file: "clients/premier_insurers_policy_holders.md" },
+    { title: "  POLICIES", file: "clients/premier_insurers_policies.md" },
+    { title: "Glossary", file: "glossary.md" }
+];
+
+const nav = document.getElementById("nav");
+const search = document.getElementById("search");
+const rightPanel = document.getElementById("right");
+
+let currentActiveLink = null; // To keep track of the active link in the left nav
+
+function renderList(filter = "") {
+    nav.innerHTML = "";
+    docs.filter(d => d.title.toLowerCase().includes(filter.toLowerCase()))
+        .forEach(d => {
+            const a = document.createElement("a");
+            a.textContent = d.title;
+            // For left nav, href="#" is safe because onclick will prevent default
+            a.href = "#";
+            a.dataset.file = d.file; // Store file name in a data attribute
+            if (d.title.startsWith("  ")) {
+                a.style.paddingLeft = '30px';
+                a.style.fontSize = '14px';
+                a.style.color = '#555';
+            }
+            a.onclick = (event) => {
+                event.preventDefault(); // Prevent default link behavior for left nav clicks
+                loadDoc(d.file, a);
+            };
+            nav.appendChild(a);
+        });
+    // Re-highlight the current active link if it still exists in the filtered list
+    if (currentActiveLink && currentActiveLink.parentNode === nav) {
+        // Find the link in the newly rendered list that corresponds to currentActiveLink's file
+        const reRenderedLink = nav.querySelector(`a[data-file="${currentActiveLink.dataset.file}"]`);
+        if (reRenderedLink) {
+            reRenderedLink.classList.add('active');
+            currentActiveLink = reRenderedLink; // Update reference
+        }
+    }
+}
+
+async function loadDoc(fileWithAnchor, clickedLink = null) {
+    const fileParts = fileWithAnchor.split('#');
+    const file = fileParts[0];
+    const anchorId = fileParts[1];
+
+    // Deactivate previous active link
+    if (currentActiveLink) {
+        currentActiveLink.classList.remove('active');
+    }
+
+    // Activate the new link in the left nav
+    if (clickedLink) { // Activated from left nav
+        clickedLink.classList.add('active');
+        currentActiveLink = clickedLink;
+    } else { // Activated from right panel or programmatically
+        // Find the corresponding link in the nav based on the file path
+        const navLink = nav.querySelector(`a[data-file="${file}"]`);
+        if (navLink) {
+            navLink.classList.add('active');
+            currentActiveLink = navLink;
+        } else {
+            // If the file is valid but not explicitly in the left nav (e.g., deep link to a sub-table not directly listed)
+            currentActiveLink = null; // No left nav link will be active
+        }
+    }
+
+    const txt = await fetch(file).then(r => r.text()).catch(e => {
+        console.error("Failed to load document:", file, e);
+        return "# Error\nCould not load document: " + file;
+    });
+
+    rightPanel.innerHTML = marked.parse(txt);
+    rightPanel.scrollTop = 0; // Scroll to top on new doc load
+
+    // If an anchor ID exists, scroll to it after content is rendered
+    if (anchorId) {
+        // Use a small timeout to ensure the browser has finished rendering the markdown
+        setTimeout(() => {
+            const targetElement = document.getElementById(anchorId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 100);
+    }
+}
+
+search.oninput = () => renderList(search.value);
+renderList();
+// Load the initial home document
+loadDoc("README.md", nav.querySelector('a[data-file="README.md"]'));
+
+// --- GLOBAL EVENT DELEGATION FOR LINKS WITHIN THE RIGHT PANEL ---
+rightPanel.addEventListener('click', function(event) {
+    let target = event.target;
+
+    // Traverse up the DOM tree to find the <a> tag
+    while (target && target.tagName !== 'A' && target !== this) {
+        target = target.parentNode;
+    }
+
+    if (target && target.tagName === 'A') {
+        const href = target.getAttribute('href');
+        const currentLoadedFile = currentActiveLink ? currentActiveLink.dataset.file : null;
+
+        if (!href) return; // No href, do nothing
+
+        const hrefParts = href.split('#');
+        const filePath = hrefParts[0]; // e.g., 'clients/claim_header.md' or '' for #anchor
+        const anchorId = hrefParts[1]; // e.g., 'claim' or undefined
+
+        // Determine if it's an internal catalog link (either a file path or an anchor within a file)
+        const isInternalCatalogFile = docs.some(d => d.file === filePath);
+        const isRelativeInternalFile = filePath && (filePath.startsWith('clients/') || filePath.endsWith('.md'));
+
+        // Case 1: Link to a different internal markdown file (e.g., 'clients/claim_header.md' from README.md)
+        // This includes links like 'glossary.md#some_section' when clicking from another document
+        const isLinkToDifferentFile = (isInternalCatalogFile || isRelativeInternalFile) && filePath !== currentLoadedFile;
+
+        // Case 2: Link to an anchor within the *currently loaded* markdown file
+        // (e.g., '#claim' or 'glossary.md#claim' when glossary.md is already open)
+        const isAnchorInCurrentFile = anchorId && (filePath === '' || filePath === currentLoadedFile);
+
+
+        if (isLinkToDifferentFile) {
+            event.preventDefault(); // Prevent default link behavior (opening in new tab/navigating)
+            loadDoc(href); // Load the document, loadDoc will handle the anchor if present
+        } else if (isAnchorInCurrentFile) {
+            event.preventDefault(); // Prevent full page reload
+            // loadDoc will handle scrolling for anchors after loading content,
+            // but if the content is already loaded and it's just an anchor, we scroll directly.
+            const targetElement = document.getElementById(anchorId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+        // For external links or other non-catalog links, allow default browser behavior.
+    }
+});
+</script>
+</body>
+</html>
