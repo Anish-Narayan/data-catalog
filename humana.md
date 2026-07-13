@@ -1,0 +1,3 @@
+# HUMANA
+
+**HUMANA** is a leading healthcare organization in the US, primarily focused on providing a robust medicare platform. Their data assets are crucial for managing claims, member information, and provider networks, ensuring efficient and accurate processing within the Medicare ecosystem. This client's data is segmented into various schemas to manage the complexity and lifecycle of the data, providing a comprehensive view of healthcare operations and financial integrity.

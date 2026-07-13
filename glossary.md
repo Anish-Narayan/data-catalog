@@ -1,33 +1,11 @@
-# Glossary
+# Glossary of Terms
 
-This glossary defines common terms used throughout the Payment Integrity Data Catalog.
+This section provides definitions for common terms used throughout the Payment Integrity Data Catalog, particularly those relevant to the Medicare platform and claims processing.
 
-<a id="claim"></a>
-## Claim
-**Definition:** A formal request for payment submitted by a healthcare provider to an insurer for services rendered to a patient.
-**Context:** Claims contain detailed information about the services, dates, costs, and patient.
-
-<a id="member"></a>
-## Member
-**Definition:** An individual who is covered by a health insurance plan or is a beneficiary of healthcare services.
-**Context:** Members are uniquely identified and linked to their health records and claims.
-
-<a id="provider"></a>
-## Provider
-**Definition:** A healthcare professional (e.g., doctor, nurse, therapist) or an organization (e.g., hospital, clinic, lab) that provides healthcare services.
-**Context:** Providers submit claims for the services they render.
-
-<a id="adjudication"></a>
-## Adjudication
-**Definition:** The process by which an insurance company reviews a claim and determines whether to pay it, deny it, or pay it at a reduced rate, based on policy terms and clinical guidelines.
-**Context:** This process often results in a 'Paid Amount' and a 'Claim Status'.
-
-<a id="cpt_code"></a>
-## CPT Code (Current Procedural Terminology)
-**Definition:** A set of medical codes used by physicians and other healthcare providers to report medical, surgical, and diagnostic procedures and services to entities such as physicians, health insurance companies and accreditation organizations.
-**Context:** Used in `CLAIM_LINE` to describe the service provided.
-
-<a id="allowed_amount"></a>
-## Allowed Amount
-**Definition:** The maximum amount a plan will pay for a covered health care service. This may also be called “eligible expense,” “payment allowance,” or “negotiated rate.”
-**Context:** The negotiated rate between the payer and provider for a specific service.
+*   **Claim**: A formal request by a healthcare provider or a patient to an insurer for payment for services rendered. In the context of Medicare, this refers to requests for reimbursement for covered services.
+*   **CPT Code**: Current Procedural Terminology codes are a medical code set maintained by the American Medical Association (AMA) that describes medical, surgical, and diagnostic services. They are critical for billing and reporting in healthcare.
+*   **HCPCS Code**: Healthcare Common Procedure Coding System codes are a set of standardized codes that represent medical procedures, supplies, products, and services. These codes are used by providers and payers to ensure consistent and accurate communication about healthcare services.
+*   **Schema**: In a database context, a schema is a collection of logical structures of data, or an organizational blueprint of how the database is constructed (e.g., tables, fields, relationships).
+*   **DOS**: An abbreviation for "Date Of Service," referring to the specific date(s) on which healthcare services were provided to a patient.
+*   **Payment Integrity**: The comprehensive process of ensuring that healthcare payments are accurate, appropriate, and adhere to contractual obligations, regulatory requirements, and medical necessity guidelines. This involves preventing and recovering improper payments due to fraud, waste, and abuse.
+*   **Medicare**: A federal health insurance program in the United States for people aged 65 or older, certain younger people with disabilities, and people with End-Stage Renal Disease.

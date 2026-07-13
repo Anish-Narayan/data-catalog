@@ -242,27 +242,19 @@ input[type="text"]:focus {
         <div id="nav"></div>
     </div>
     <div id="right">
-        <h2>Select a document from the left navigation.</h2>
-        <p>This catalog helps you explore various data assets across different clients.</p>
+        <h2>Loading content...</h2>
+        <p>Please wait while the data catalog documents are loaded.</p>
     </div>
 </div>
 <script>
 const docs = [
-    { title: "Home", file: "readme/README.md" },
-    { title: "Acme Health (Client)", file: "clients/acme_health.md" },
-    { title: "  CLAIM_HEADER", file: "clients/claim_header.md" },
-    { title: "  CLAIM_LINE", file: "clients/claim_line.md" },
-    { title: "  MEMBER_DEMOGRAPHICS", file: "clients/acme_health_member_demographics.md" },
-    { title: "Bright Care (Client)", file: "clients/bright_care.md" },
-    { title: "  PATIENT_VISITS", file: "clients/bright_care_patient_visits.md" },
-    { title: "  PROVIDERS", file: "clients/bright_care_providers.md" },
-    { title: "MedAssist (Client)", file: "clients/med_assist.md" },
-    { title: "  PHARMACY_CLAIMS", file: "clients/med_assist_pharmacy_claims.md" },
-    { title: "  DRUG_CODES", file: "clients/med_assist_drug_codes.md" },
-    { title: "Premier Insurers (Client)", file: "clients/premier_insurers.md" },
-    { title: "  POLICY_HOLDERS", file: "clients/premier_insurers_policy_holders.md" },
-    { title: "  POLICIES", file: "clients/premier_insurers_policies.md" },
-    { title: "Glossary", file: "glossary.md" }
+    { title: "Home", file: "readme/README.md", fullContent: null },
+    { title: "HUMANA", file: "humana.md", fullContent: null },
+    { title: "HUMANA Gold", file: "humana_gold.md", fullContent: null },
+    { title: "HUMANA Silver", file: "humana_silver.md", fullContent: null },
+    { title: "  Medclaim", file: "medclaim.md", fullContent: null },
+    { title: "  Medclaim Summary", file: "medclaimsummary.md", fullContent: null },
+    { title: "Glossary", file: "glossary.md", fullContent: null }
 ];
 
 const nav = document.getElementById("nav");
@@ -271,26 +263,68 @@ const rightPanel = document.getElementById("right");
 
 let currentActiveLink = null; // To keep track of the active link in the left nav
 
+// Debounce function to limit how often a function is called
+function debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+    };
+}
+
+// Function to fetch and store content of all markdown files
+async function loadAllDocsContent() {
+    const fetchPromises = docs.map(async (doc) => {
+        try {
+            const response = await fetch(doc.file);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status} for ${doc.file}`);
+            }
+            doc.fullContent = await response.text();
+        } catch (e) {
+            console.error(`Failed to load content for ${doc.file}:`, e);
+            doc.fullContent = `# Error\nCould not load document: ${doc.file}\n\n${e.message}`;
+        }
+    });
+    await Promise.all(fetchPromises);
+    console.log("All document content loaded.");
+    // After all content is loaded, render the list and the initial document
+    renderList();
+    loadDoc("readme/README.md", nav.querySelector('a[data-file="readme/README.md"]'));
+}
+
+
 function renderList(filter = "") {
     nav.innerHTML = "";
-    docs.filter(d => d.title.toLowerCase().includes(filter.toLowerCase()))
-        .forEach(d => {
-            const a = document.createElement("a");
-            a.textContent = d.title;
-            // For left nav, href="#" is safe because onclick will prevent default
-            a.href = "#";
-            a.dataset.file = d.file; // Store file name in a data attribute
-            if (d.title.startsWith("  ")) {
-                a.style.paddingLeft = '30px';
-                a.style.fontSize = '14px';
-                a.style.color = 'var(--clr-text-light)'; /* Use CSS variable for sub-item color */
-            }
-            a.onclick = (event) => {
-                event.preventDefault(); // Prevent default link behavior for left nav clicks
-                loadDoc(d.file, a);
-            };
-            nav.appendChild(a);
-        });
+    const lowerCaseFilter = filter.toLowerCase();
+
+    // Filter documents based on matching title, file name, OR document content
+    const filteredDocs = docs.filter(d =>
+        d.title.toLowerCase().includes(lowerCaseFilter) ||
+        d.file.toLowerCase().includes(lowerCaseFilter) ||
+        (d.fullContent && d.fullContent.toLowerCase().includes(lowerCaseFilter)) // Check content if available
+    );
+
+    filteredDocs.forEach(d => {
+        const a = document.createElement("a");
+        a.textContent = d.title;
+        a.href = "#";
+        a.dataset.file = d.file; // Store file name in a data attribute
+
+        // Apply styling for sub-items based on title content (e.g., "  Medclaim")
+        if (d.title.startsWith("  ")) {
+            a.style.paddingLeft = '30px';
+            a.style.fontSize = '14px';
+            a.style.color = 'var(--clr-text-light)'; /* Use CSS variable for sub-item color */
+        }
+        
+        a.onclick = (event) => {
+            event.preventDefault(); // Prevent default link behavior for left nav clicks
+            loadDoc(d.file, a);
+        };
+        nav.appendChild(a);
+    });
     // Re-highlight the current active link if it still exists in the filtered list
     if (currentActiveLink && currentActiveLink.parentNode === nav) {
         // Find the link in the newly rendered list that corresponds to currentActiveLink's file
@@ -323,15 +357,13 @@ async function loadDoc(fileWithAnchor, clickedLink = null) {
             navLink.classList.add('active');
             currentActiveLink = navLink;
         } else {
-            // If the file is valid but not explicitly in the left nav (e.g., deep link to a sub-table not directly listed)
             currentActiveLink = null; // No left nav link will be active
         }
     }
 
-    const txt = await fetch(file).then(r => r.text()).catch(e => {
-        console.error("Failed to load document:", file, e);
-        return "# Error\nCould not load document: " + file;
-    });
+    // Retrieve content from the docs array, which should already be loaded
+    const docEntry = docs.find(d => d.file === file);
+    let txt = docEntry ? docEntry.fullContent : "# Error\nDocument content not found in cache for: " + file;
 
     rightPanel.innerHTML = marked.parse(txt);
     rightPanel.scrollTop = 0; // Scroll to top on new doc load
@@ -348,10 +380,12 @@ async function loadDoc(fileWithAnchor, clickedLink = null) {
     }
 }
 
-search.oninput = () => renderList(search.value);
-renderList();
-// Load the initial home document
-loadDoc("readme/README.md", nav.querySelector('a[data-file="readme/README.md"]'));
+// Initial call to load all document content when the page loads
+loadAllDocsContent();
+
+// Apply debounce to the search input
+search.oninput = debounce(() => renderList(search.value), 300);
+
 // --- GLOBAL EVENT DELEGATION FOR LINKS WITHIN THE RIGHT PANEL ---
 rightPanel.addEventListener('click', function(event) {
     let target = event.target;
@@ -373,9 +407,9 @@ rightPanel.addEventListener('click', function(event) {
 
         // Determine if it's an internal catalog link (either a file path or an anchor within a file)
         const isInternalCatalogFile = docs.some(d => d.file === filePath);
-        const isRelativeInternalFile = filePath && (filePath.startsWith('clients/') || filePath.endsWith('.md'));
+        const isRelativeInternalFile = filePath && (filePath.endsWith('.md')); // Simplified check for markdown files
 
-        // Case 1: Link to a different internal markdown file (e.g., 'clients/claim_header.md' from README.md)
+        // Case 1: Link to a different internal markdown file (e.g., 'humana.md' from README.md)
         // This includes links like 'glossary.md#some_section' when clicking from another document
         const isLinkToDifferentFile = (isInternalCatalogFile || isRelativeInternalFile) && filePath !== currentLoadedFile;
 
@@ -401,4 +435,4 @@ rightPanel.addEventListener('click', function(event) {
 });
 </script>
 </body>
-</html>```
+</html>
