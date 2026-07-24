@@ -59,11 +59,12 @@ body {
 .container {
     display: flex;
     flex: 1; /* Allows it to take remaining vertical space */
+    overflow: hidden;
 }
 
 /* Left Sidebar Navigation */
 #left {
-    width: 280px;
+    width: 300px;
     border-right: 1px solid var(--clr-border-medium); /* Medium grey right border */
     padding: 20px; /* Increased padding */
     overflow-y: auto;
@@ -84,7 +85,7 @@ body {
 
 /* Search Input */
 input[type="text"] {
-    width: calc(100% - 20px); /* Adjust for padding */
+    width: 100%; /* Adjust for padding */
     padding: 12px; /* More padding for a softer touch */
     margin-bottom: 20px; /* Increased bottom margin */
     border: 1px solid var(--clr-border-medium); /* Medium grey border */
@@ -99,37 +100,101 @@ input[type="text"]:focus {
     box-shadow: 0 0 0 0.2rem rgba(233, 163, 124, 0.25); /* Dull orange shadow on focus */
 }
 
-/* Navigation Links */
+/* --- Hierarchical Tree Navigation Styles --- */
+#nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 #nav a {
     display: block;
-    padding: 10px 12px; /* Adjusted padding */
+    padding: 8px 12px;
     text-decoration: none;
-    color: var(--clr-text-medium); /* Medium grey for default links */
-    border-radius: 5px; /* Slightly more rounded corners */
-    margin-bottom: 6px; /* Increased bottom margin */
-    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; /* Smooth transitions */
-    font-size: 15px;
-    white-space: nowrap; /* Prevent wrapping */
-    overflow: hidden; /* Hide overflow */
-    text-overflow: ellipsis; /* Add ellipsis for overflow */
+    color: var(--clr-text-medium);
+    border-radius: 5px;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    font-size: 14.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 #nav a:hover {
-    background-color: var(--clr-accent-light); /* Very light dull orange on hover */
-    color: var(--clr-accent-dark); /* Darker dull orange on hover */
+    background-color: var(--clr-accent-light);
+    color: var(--clr-accent-dark);
 }
 #nav a.active {
-    background-color: var(--clr-accent-main); /* Main dull orange for active link */
-    color: var(--clr-bg-panel); /* White text for active link */
-    font-weight: 600; /* Bolder for active link */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow for active state */
+    background-color: var(--clr-accent-main);
+    color: var(--clr-bg-panel);
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-/* Styling for sub-items in the navigation */
-#nav a[style*="padding-left: 30px"] {
-    color: var(--clr-text-light); /* Lighter grey for sub-items */
-    font-size: 14px;
+
+#nav details {
+    margin-bottom: 2px;
 }
-#nav a[style*="padding-left: 30px"]:hover {
-    color: var(--clr-accent-dark); /* Darker dull orange on hover for sub-items */
+
+#nav summary {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    list-style: none; /* Hide standard list styles */
+    user-select: none;
+}
+#nav summary::-webkit-details-marker {
+    display: none; /* Hide default summary triangle on Chrome/Safari */
+}
+
+/* Dedicated Expand/Collapse Arrow Indicator */
+#nav summary::before {
+    content: "▸";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-right: 4px;
+    transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    color: var(--clr-text-light);
+    font-size: 12px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+/* Visual hover focus feedback specifically for the expansion arrow toggle */
+#nav summary:hover::before {
+    background-color: var(--clr-accent-light);
+    color: var(--clr-accent-dark);
+}
+#nav details[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+/* Client overview name container in directory lists */
+#nav .folder-title-link {
+    flex: 1;
+    font-weight: 600;
+    color: var(--clr-text-dark);
+}
+
+/* Visual indentation line for child directory/files */
+.folder-content {
+    padding-left: 12px;
+    border-left: 1px dashed var(--clr-border-medium);
+    margin-left: 11px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* Search Highlighting */
+.search-highlight {
+    background-color: #ffe0b2; /* Soft warm light orange highlight */
+    color: #5d4037; /* Dark warm brown text for high contrast and readability */
+    padding: 0 2px;
+    border-radius: 3px;
+    font-weight: 500;
 }
 
 /* Content Area Styling */
@@ -197,7 +262,7 @@ input[type="text"]:focus {
     background-color: var(--clr-accent-light); /* Very light dull orange on row hover */
 }
 
-/* Code blocks (for examples) */
+/* Code blocks */
 #right pre {
     background-color: var(--clr-code-bg); /* Light grey background for code */
     border: 1px solid var(--clr-code-border); /* Matching grey border */
@@ -238,7 +303,7 @@ input[type="text"]:focus {
 </div>
 <div class="container">
     <div id="left">
-        <input type="text" id="search" placeholder="Search documents...">
+        <input type="text" id="search" placeholder="Search files & contents...">
         <div id="nav"></div>
     </div>
     <div id="right">
@@ -247,23 +312,30 @@ input[type="text"]:focus {
     </div>
 </div>
 <script>
-const docs = [
-    { title: "Home", file: "readme/README.md", fullContent: null },
-    { title: "HUMANA", file: "humana.md", fullContent: null },
-    { title: "HUMANA Gold", file: "humana_gold.md", fullContent: null },
-    { title: "HUMANA Silver", file: "humana_silver.md", fullContent: null },
-    { title: "  Medclaim", file: "medclaim.md", fullContent: null },
-    { title: "  Medclaim Summary", file: "medclaimsummary.md", fullContent: null },
-    { title: "Glossary", file: "glossary.md", fullContent: null }
+// --- CONFIGURATION ---
+// Default fallback structure if catalog-structure.json is missing or not found.
+const defaultCatalogData = [
+    { name: "Home", path: "readme/README.md", type: "file" },
+    {
+        name: "Client1",
+        type: "directory",
+        children: [
+            { name: "Client1 Overview", path: "client1/client1.md", type: "file" },
+            { name: "Client1 Table1", path: "client1/client1_table1.md", type: "file" },
+            { name: "Client1 Table2", path: "client1/client1_table2.md", type: "file" }
+        ]
+    },
+    { name: "Glossary", path: "glossary.md", type: "file" }
 ];
+
+let catalogData = []; // To store full tree structure (directory nodes & file nodes)
+let flatDocs = [];    // Flattened array containing only file entries for content indexation
+let currentActiveLink = null;
 
 const nav = document.getElementById("nav");
 const search = document.getElementById("search");
 const rightPanel = document.getElementById("right");
 
-let currentActiveLink = null; // To keep track of the active link in the left nav
-
-// Debounce function to limit how often a function is called
 function debounce(func, delay) {
     let timeout;
     return function(...args) {
@@ -273,67 +345,258 @@ function debounce(func, delay) {
     };
 }
 
-// Function to fetch and store content of all markdown files
+// Recursively flattens directory tree into a single array of markdown files
+function flattenTree(nodes) {
+    let files = [];
+    nodes.forEach(node => {
+        if (node.type === 'file') {
+            files.push(node);
+        } else if (node.type === 'directory' && node.children) {
+            files = files.concat(flattenTree(node.children));
+        }
+    });
+    return files;
+}
+
+// Helper to escape search strings for use inside regular expressions
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Returns HTML text safe for browser insertion, with matching search query wrapped inside highlight tags
+function highlightHTMLText(text, searchTerm) {
+    if (!searchTerm) return text;
+    const escapedText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+    return escapedText.replace(regex, '<mark class="search-highlight">$1</mark>');
+}
+
+// Safely highlights search terms directly on text nodes in DOM, completely avoiding HTML tags, PRE, or CODE structures
+function highlightTextDOM(node, searchTerm) {
+    if (!searchTerm) return;
+    const regex = new RegExp(`(${escapeRegExp(searchTerm)})`, 'gi');
+    
+    if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.nodeValue;
+        const matches = [...text.matchAll(regex)];
+        if (matches.length > 0) {
+            const fragment = document.createDocumentFragment();
+            let lastIndex = 0;
+            
+            for (const match of matches) {
+                const matchIndex = match.index;
+                const matchText = match[0];
+                
+                if (matchIndex > lastIndex) {
+                    fragment.appendChild(document.createTextNode(text.substring(lastIndex, matchIndex)));
+                }
+                
+                const mark = document.createElement('mark');
+                mark.className = 'search-highlight';
+                mark.textContent = matchText;
+                fragment.appendChild(mark);
+                
+                lastIndex = matchIndex + matchText.length;
+            }
+            if (lastIndex < text.length) {
+                fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+            }
+            node.parentNode.replaceChild(fragment, node);
+        }
+    } else if (node.nodeType === Node.ELEMENT_NODE && 
+               node.nodeName !== 'SCRIPT' && 
+               node.nodeName !== 'STYLE' && 
+               node.nodeName !== 'PRE' && 
+               node.nodeName !== 'CODE') {
+        const children = Array.from(node.childNodes);
+        for (let child of children) {
+            highlightTextDOM(child, searchTerm);
+        }
+    }
+}
+
+// Searches directory children for an overview/index document that mirrors the folder's name
+function findOverviewFile(dirNode) {
+    if (!dirNode.children) return null;
+    const dirNameClean = dirNode.name.toLowerCase().replace(/\s+/g, '');
+    
+    // 1. Look for client directory name matches (e.g. Folder "client1" overview is "client1.md")
+    let match = dirNode.children.find(child => 
+        child.type === 'file' && 
+        child.name.toLowerCase().replace(/\s+/g, '') === dirNameClean
+    );
+    if (match) return match;
+
+    // 2. Look for explicit fallback words (overview, index, readme)
+    match = dirNode.children.find(child => 
+        child.type === 'file' && 
+        (child.name.toLowerCase().includes('readme') || 
+         child.name.toLowerCase().includes('index') || 
+         child.name.toLowerCase().includes('overview'))
+    );
+    if (match) return match;
+
+    // 3. Fallback to the first file inside the directory
+    match = dirNode.children.find(child => child.type === 'file');
+    return match || null;
+}
+
+// Loads and caches structure, then loads target document contents in parallel
 async function loadAllDocsContent() {
-    const fetchPromises = docs.map(async (doc) => {
+    try {
+        const response = await fetch('catalog-structure.json');
+        if (response.ok) {
+            catalogData = await response.json();
+            console.log("Success: Loaded directory structure from catalog-structure.json");
+        } else {
+            console.warn("Unable to fetch catalog-structure.json. Falling back to built-in default layout.");
+            catalogData = defaultCatalogData;
+        }
+    } catch (e) {
+        console.warn("Error requesting catalog-structure.json, using offline layout: ", e);
+        catalogData = defaultCatalogData;
+    }
+
+    flatDocs = flattenTree(catalogData);
+
+    const fetchPromises = flatDocs.map(async (doc) => {
         try {
-            const response = await fetch(doc.file);
+            const response = await fetch(doc.path);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status} for ${doc.file}`);
+                throw new Error(`HTTP error! status: ${response.status} for ${doc.path}`);
             }
             doc.fullContent = await response.text();
         } catch (e) {
-            console.error(`Failed to load content for ${doc.file}:`, e);
-            doc.fullContent = `# Error\nCould not load document: ${doc.file}\n\n${e.message}`;
+            console.error(`Failed to load content for ${doc.path}:`, e);
+            doc.fullContent = `# Error\nCould not load document: ${doc.path}\n\n${e.message}`;
         }
     });
+
     await Promise.all(fetchPromises);
-    console.log("All document content loaded.");
-    // After all content is loaded, render the list and the initial document
-    renderList();
-    loadDoc("readme/README.md", nav.querySelector('a[data-file="readme/README.md"]'));
+    console.log("Content caching complete.");
+    
+    renderTree(search.value);
+    
+    // Auto-load home path or fallback to the first file entry
+    const initialDoc = flatDocs.find(d => d.path === 'readme/README.md') || flatDocs[0];
+    if (initialDoc) {
+        loadDoc(initialDoc.path);
+    }
 }
 
+// Builds the visual hierarchical DOM tree recursively
+function buildTreeHTML(nodes, filterText = "") {
+    const lowerFilter = filterText.toLowerCase();
+    let hasMatches = false;
+    const fragment = document.createDocumentFragment();
 
-function renderList(filter = "") {
-    nav.innerHTML = "";
-    const lowerCaseFilter = filter.toLowerCase();
+    nodes.forEach(node => {
+        if (node.type === 'file') {
+            const matchesFilter = !filterText || 
+                node.name.toLowerCase().includes(lowerFilter) || 
+                node.path.toLowerCase().includes(lowerFilter) || 
+                (node.fullContent && node.fullContent.toLowerCase().includes(lowerFilter));
 
-    // Filter documents based on matching title, file name, OR document content
-    const filteredDocs = docs.filter(d =>
-        d.title.toLowerCase().includes(lowerCaseFilter) ||
-        d.file.toLowerCase().includes(lowerCaseFilter) ||
-        (d.fullContent && d.fullContent.toLowerCase().includes(lowerCaseFilter)) // Check content if available
-    );
+            if (matchesFilter) {
+                hasMatches = true;
+                const a = document.createElement("a");
+                a.href = "#";
+                a.dataset.file = node.path;
+                
+                if (filterText && node.name.toLowerCase().includes(lowerFilter)) {
+                    a.innerHTML = highlightHTMLText(node.name, filterText);
+                } else {
+                    a.textContent = node.name;
+                }
 
-    filteredDocs.forEach(d => {
-        const a = document.createElement("a");
-        a.textContent = d.title;
-        a.href = "#";
-        a.dataset.file = d.file; // Store file name in a data attribute
+                a.onclick = (event) => {
+                    event.preventDefault();
+                    loadDoc(node.path, a);
+                };
+                
+                if (currentActiveLink && currentActiveLink.dataset.file === node.path) {
+                    a.classList.add('active');
+                    currentActiveLink = a; // keep reference fresh
+                }
+                
+                fragment.appendChild(a);
+            }
+        } else if (node.type === 'directory') {
+            const overviewFile = findOverviewFile(node);
+            
+            // Check if directory overview content matches the query
+            let overviewMatches = false;
+            if (overviewFile && filterText) {
+                overviewMatches = overviewFile.name.toLowerCase().includes(lowerFilter) ||
+                    overviewFile.path.toLowerCase().includes(lowerFilter) ||
+                    (overviewFile.fullContent && overviewFile.fullContent.toLowerCase().includes(lowerFilter));
+            }
 
-        // Apply styling for sub-items based on title content (e.g., "  Medclaim")
-        if (d.title.startsWith("  ")) {
-            a.style.paddingLeft = '30px';
-            a.style.fontSize = '14px';
-            a.style.color = 'var(--clr-text-light)'; /* Use CSS variable for sub-item color */
+            // Exclude the overview file from duplicating inside the inner directory lists
+            const nonOverviewChildren = node.children.filter(child => child !== overviewFile);
+            const { element: childrenFragment, matched: childrenMatched } = buildTreeHTML(nonOverviewChildren, filterText);
+            
+            const matched = childrenMatched || overviewMatches;
+            const dirMatches = filterText && node.name.toLowerCase().includes(lowerFilter);
+            
+            if (!filterText || matched || dirMatches) {
+                if (matched || dirMatches) hasMatches = true;
+                
+                const details = document.createElement("details");
+                // Automatically open collapsible nodes if a search result falls inside it
+                if (filterText && (matched || dirMatches)) {
+                    details.open = true;
+                }
+                
+                const summary = document.createElement("summary");
+                
+                const folderLink = document.createElement("a");
+                folderLink.href = "#";
+                folderLink.className = "folder-title-link";
+                if (overviewFile) {
+                    folderLink.dataset.file = overviewFile.path;
+                }
+                
+                if (filterText && node.name.toLowerCase().includes(lowerFilter)) {
+                    folderLink.innerHTML = highlightHTMLText(node.name, filterText);
+                } else {
+                    folderLink.textContent = node.name;
+                }
+                
+                folderLink.onclick = (event) => {
+                    event.preventDefault();
+                    event.stopPropagation(); // Prevents expansion of the details panel
+                    if (overviewFile) {
+                        loadDoc(overviewFile.path, folderLink);
+                    }
+                };
+
+                if (currentActiveLink && overviewFile && currentActiveLink.dataset.file === overviewFile.path) {
+                    folderLink.classList.add('active');
+                    currentActiveLink = folderLink;
+                }
+                
+                summary.appendChild(folderLink);
+                
+                const contentDiv = document.createElement("div");
+                contentDiv.className = "folder-content";
+                contentDiv.appendChild(childrenFragment);
+                
+                details.appendChild(summary);
+                details.appendChild(contentDiv);
+                
+                fragment.appendChild(details);
+            }
         }
-        
-        a.onclick = (event) => {
-            event.preventDefault(); // Prevent default link behavior for left nav clicks
-            loadDoc(d.file, a);
-        };
-        nav.appendChild(a);
     });
-    // Re-highlight the current active link if it still exists in the filtered list
-    if (currentActiveLink && currentActiveLink.parentNode === nav) {
-        // Find the link in the newly rendered list that corresponds to currentActiveLink's file
-        const reRenderedLink = nav.querySelector(`a[data-file="${currentActiveLink.dataset.file}"]`);
-        if (reRenderedLink) {
-            reRenderedLink.classList.add('active');
-            currentActiveLink = reRenderedLink; // Update reference
-        }
-    }
+
+    return { element: fragment, matched: hasMatches };
+}
+
+function renderTree(filter = "") {
+    nav.innerHTML = "";
+    const { element } = buildTreeHTML(catalogData, filter);
+    nav.appendChild(element);
 }
 
 async function loadDoc(fileWithAnchor, clickedLink = null) {
@@ -341,36 +604,36 @@ async function loadDoc(fileWithAnchor, clickedLink = null) {
     const file = fileParts[0];
     const anchorId = fileParts[1];
 
-    // Deactivate previous active link
     if (currentActiveLink) {
         currentActiveLink.classList.remove('active');
     }
 
-    // Activate the new link in the left nav
-    if (clickedLink) { // Activated from left nav
+    if (clickedLink) {
         clickedLink.classList.add('active');
         currentActiveLink = clickedLink;
-    } else { // Activated from right panel or programmatically
-        // Find the corresponding link in the nav based on the file path
+    } else {
         const navLink = nav.querySelector(`a[data-file="${file}"]`);
         if (navLink) {
             navLink.classList.add('active');
             currentActiveLink = navLink;
         } else {
-            currentActiveLink = null; // No left nav link will be active
+            currentActiveLink = null;
         }
     }
 
-    // Retrieve content from the docs array, which should already be loaded
-    const docEntry = docs.find(d => d.file === file);
-    let txt = docEntry ? docEntry.fullContent : "# Error\nDocument content not found in cache for: " + file;
+    const docEntry = flatDocs.find(d => d.path === file);
+    let txt = docEntry ? docEntry.fullContent : "# Error\nDocument content not found inside directory mapping for: " + file;
 
     rightPanel.innerHTML = marked.parse(txt);
-    rightPanel.scrollTop = 0; // Scroll to top on new doc load
+    rightPanel.scrollTop = 0;
 
-    // If an anchor ID exists, scroll to it after content is rendered
+    // Apply main pane highlighting if there's an active query
+    const searchTerm = search.value.trim();
+    if (searchTerm) {
+        highlightTextDOM(rightPanel, searchTerm);
+    }
+
     if (anchorId) {
-        // Use a small timeout to ensure the browser has finished rendering the markdown
         setTimeout(() => {
             const targetElement = document.getElementById(anchorId);
             if (targetElement) {
@@ -380,17 +643,32 @@ async function loadDoc(fileWithAnchor, clickedLink = null) {
     }
 }
 
-// Initial call to load all document content when the page loads
+// Cleanly updates highlights when typing without breaking existing structures
+function updateRightPanelHighlight() {
+    if (!currentActiveLink) return;
+    const file = currentActiveLink.dataset.file;
+    const docEntry = flatDocs.find(d => d.path === file);
+    if (docEntry && docEntry.fullContent) {
+        rightPanel.innerHTML = marked.parse(docEntry.fullContent);
+        const searchTerm = search.value.trim();
+        if (searchTerm) {
+            highlightTextDOM(rightPanel, searchTerm);
+        }
+    }
+}
+
+// Load configurations and render everything on load
 loadAllDocsContent();
 
-// Apply debounce to the search input
-search.oninput = debounce(() => renderList(search.value), 300);
+// Bind structured debounced updates on search input
+search.oninput = debounce(() => {
+    renderTree(search.value);
+    updateRightPanelHighlight();
+}, 300);
 
-// --- GLOBAL EVENT DELEGATION FOR LINKS WITHIN THE RIGHT PANEL ---
+// Global delegation of panel anchor navigations
 rightPanel.addEventListener('click', function(event) {
     let target = event.target;
-
-    // Traverse up the DOM tree to find the <a> tag
     while (target && target.tagName !== 'A' && target !== this) {
         target = target.parentNode;
     }
@@ -399,38 +677,27 @@ rightPanel.addEventListener('click', function(event) {
         const href = target.getAttribute('href');
         const currentLoadedFile = currentActiveLink ? currentActiveLink.dataset.file : null;
 
-        if (!href) return; // No href, do nothing
+        if (!href) return;
 
         const hrefParts = href.split('#');
-        const filePath = hrefParts[0]; // e.g., 'clients/claim_header.md' or '' for #anchor
-        const anchorId = hrefParts[1]; // e.g., 'claim' or undefined
+        const filePath = hrefParts[0];
+        const anchorId = hrefParts[1];
 
-        // Determine if it's an internal catalog link (either a file path or an anchor within a file)
-        const isInternalCatalogFile = docs.some(d => d.file === filePath);
-        const isRelativeInternalFile = filePath && (filePath.endsWith('.md')); // Simplified check for markdown files
-
-        // Case 1: Link to a different internal markdown file (e.g., 'humana.md' from README.md)
-        // This includes links like 'glossary.md#some_section' when clicking from another document
+        const isInternalCatalogFile = flatDocs.some(d => d.path === filePath);
+        const isRelativeInternalFile = filePath && (filePath.endsWith('.md'));
         const isLinkToDifferentFile = (isInternalCatalogFile || isRelativeInternalFile) && filePath !== currentLoadedFile;
-
-        // Case 2: Link to an anchor within the *currently loaded* markdown file
-        // (e.g., '#claim' or 'glossary.md#claim' when glossary.md is already open)
         const isAnchorInCurrentFile = anchorId && (filePath === '' || filePath === currentLoadedFile);
 
-
         if (isLinkToDifferentFile) {
-            event.preventDefault(); // Prevent default link behavior (opening in new tab/navigating)
-            loadDoc(href); // Load the document, loadDoc will handle the anchor if present
+            event.preventDefault();
+            loadDoc(href);
         } else if (isAnchorInCurrentFile) {
-            event.preventDefault(); // Prevent full page reload
-            // loadDoc will handle scrolling for anchors after loading content,
-            // but if the content is already loaded and it's just an anchor, we scroll directly.
+            event.preventDefault();
             const targetElement = document.getElementById(anchorId);
             if (targetElement) {
                 targetElement.scrollIntoView({ behavior: 'smooth' });
             }
         }
-        // For external links or other non-catalog links, allow default browser behavior.
     }
 });
 </script>
