@@ -1,0 +1,49 @@
+[
+  {
+    "name": "Glossary",
+    "path": "glossary.md",
+    "type": "file"
+  },
+  {
+    "name": "Humana",
+    "type": "directory",
+    "children": [
+      {
+        "name": "Humana",
+        "path": "humana/humana.md",
+        "type": "file"
+      },
+      {
+        "name": "Humana Gold",
+        "path": "humana/humana_gold.md",
+        "type": "file"
+      },
+      {
+        "name": "Humana Silver",
+        "path": "humana/humana_silver.md",
+        "type": "file"
+      }
+    ]
+  },
+  {
+    "name": "Medclaim",
+    "path": "medclaim.md",
+    "type": "file"
+  },
+  {
+    "name": "Medclaimsummary",
+    "path": "medclaimsummary.md",
+    "type": "file"
+  },
+  {
+    "name": "Readme",
+    "type": "directory",
+    "children": [
+      {
+        "name": "README",
+        "path": "readme/README.md",
+        "type": "file"
+      }
+    ]
+  }
+]
