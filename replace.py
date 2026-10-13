@@ -5,12 +5,11 @@ Packagable into standalone .exe via PyInstaller
 """
 
 import sys
-import os
 import re
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from pathlib import Path
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Optional
 
 import pandas as pd
 import sqlglot
@@ -20,11 +19,13 @@ DIALECT = "databricks"
 PLACEHOLDER_PATTERN = re.compile(r"(\$[\(\{][a-zA-Z0-9_\.\-]+[\)\}]|\$[a-zA-Z0-9_]+)")
 
 
-class SQLAstTransformer:
-    """Transforms SQL scripts safely without corrupting string literals or internal CTEs."""
+class ContextualSQLTransformer:
+    """Transforms SQL scripts with context-aware column and alias resolution."""
 
     def __init__(self, table_map: Dict[str, str], col_map: Dict[Tuple[str, str], str]):
+        # table_map: { "claims": "claim_header", "member": "member" }
         self.table_map = {k.lower(): v.lower() for k, v in table_map.items()}
+        # col_map: { ("claims", "member_id"): "beneficiary_id", ("member", "member_id"): "member_id" }
         self.col_map = {(t.lower(), c.lower()): v.lower() for (t, c), v in col_map.items()}
 
     def convert(self, sql_text: str) -> Tuple[str, Dict[str, int], List[str]]:
@@ -34,11 +35,11 @@ class SQLAstTransformer:
         if not sql_text.strip():
             return "", stats, ["Input SQL is empty."]
 
-        # 1. Protect schema placeholders $(...)
+        # 1. Protect schema placeholders
         ph_map = {}
         counter = 0
 
-        def _sub(m: re.Match) -> str:
+        def _sub_ph(m: re.Match) -> str:
             nonlocal counter
             raw = m.group(0)
             if raw not in ph_map:
@@ -46,18 +47,17 @@ class SQLAstTransformer:
                 ph_map[raw] = f"temp_sch_{counter}"
             return ph_map[raw]
 
-        clean_sql = PLACEHOLDER_PATTERN.sub(_sub, sql_text)
+        clean_sql = PLACEHOLDER_PATTERN.sub(_sub_ph, sql_text)
 
-        # 2. Parse AST leniently
+        # 2. Parse leniently
         try:
             statements = [s for s in sqlglot.parse(clean_sql, read=DIALECT, error_level=sqlglot.ErrorLevel.IGNORE) if s is not None]
         except Exception as e:
-            return "", stats, [f"Parse Failure: {str(e)}"]
+            return "", stats, [f"AST Parse Failure: {str(e)}"]
 
         converted_statements = []
 
         for stmt in statements:
-            # Track local CTEs and created tables
             local_ctes = {c.alias_or_name.lower() for c in stmt.find_all(exp.CTE) if c.alias_or_name}
             local_creates = set()
             if isinstance(stmt, exp.Create):
@@ -67,15 +67,15 @@ class SQLAstTransformer:
                 if isinstance(tn, exp.Table):
                     local_creates.add(tn.name.lower())
 
-            # Scope alias -> original table name
-            alias_to_table: Dict[str, str] = {}
+            # Scope alias -> original source table name
+            alias_to_src_table: Dict[str, str] = {}
             for tbl in stmt.find_all(exp.Table):
                 t_name = tbl.name.lower()
                 alias = tbl.alias.lower() if tbl.alias else t_name
-                alias_to_table[alias] = t_name
+                alias_to_src_table[alias] = t_name
 
-            # Transform Tables
-            def _map_table(node):
+            # Transform Tables (c.claims -> c.claim_header)
+            def _transform_table(node):
                 if isinstance(node, exp.Table):
                     t_name = node.name.lower()
                     if t_name in local_ctes or t_name in local_creates:
@@ -88,26 +88,28 @@ class SQLAstTransformer:
                         warnings.append(f"Unmapped table: '{t_name}'")
                 return node
 
-            stmt = stmt.transform(_map_table)
+            stmt = stmt.transform(_transform_table)
 
-            # Transform Columns
-            def _map_column(node):
+            # Transform Columns based on originating table
+            def _transform_column(node):
                 if isinstance(node, exp.Column):
                     c_name = node.name.lower()
                     t_qual = node.table.lower() if node.table else None
                     target_col = None
 
                     if t_qual:
-                        orig_tbl = alias_to_table.get(t_qual, t_qual)
-                        target_col = self.col_map.get((orig_tbl, c_name))
+                        # Find the source table that this alias points to
+                        orig_src_table = alias_to_src_table.get(t_qual, t_qual)
+                        target_col = self.col_map.get((orig_src_table, c_name))
                     else:
-                        # Search external tables currently in scope
-                        ext_tables = [t for t in alias_to_table.values() if t not in local_ctes and t not in local_creates]
+                        # Unqualified: check across all tables in the query
+                        ext_tables = [t for t in alias_to_src_table.values() if t not in local_ctes and t not in local_creates]
                         candidates = [self.col_map[(t, c_name)] for t in ext_tables if (t, c_name) in self.col_map]
+                        candidates = list(set(candidates))
                         if len(candidates) == 1:
                             target_col = candidates[0]
                         elif len(candidates) > 1:
-                            warnings.append(f"Ambiguous column '{c_name}' matches multiple tables. Skipped.")
+                            warnings.append(f"Ambiguous column '{c_name}' maps to multiple targets: {candidates}. Left unchanged.")
 
                     if target_col:
                         node.set("this", exp.to_identifier(target_col))
@@ -115,7 +117,7 @@ class SQLAstTransformer:
 
                 return node
 
-            stmt = stmt.transform(_map_column)
+            stmt = stmt.transform(_transform_column)
             converted_statements.append(stmt.sql(dialect=DIALECT, pretty=True))
 
         out_sql = "\n\n".join(converted_statements)
@@ -128,11 +130,11 @@ class SQLAstTransformer:
 
 
 class ConverterApp(tk.Tk):
-    """Clean desktop user interface."""
+    """Desktop GUI."""
 
     def __init__(self):
         super().__init__()
-        self.title("SQL Concept Conversion Application")
+        self.title("SQL Concept Conversion Tool")
         self.geometry("1050x700")
         self.minsize(850, 550)
 
@@ -150,8 +152,7 @@ class ConverterApp(tk.Tk):
         self.style.configure("Primary.TButton", font=("Segoe UI", 9, "bold"))
 
     def _build_widgets(self):
-        # Header Controls
-        top = ttk.LabelFrame(self, text=" Configuration & Mapping Workbook ", padding=8)
+        top = ttk.LabelFrame(self, text=" Mapping Configuration ", padding=8)
         top.pack(fill=tk.X, padx=10, pady=5)
 
         btn_load = ttk.Button(top, text="Load Mapping Workbook...", command=self.load_workbook)
@@ -168,11 +169,9 @@ class ConverterApp(tk.Tk):
         self.combo_tgt = ttk.Combobox(top, state="readonly", width=25)
         self.combo_tgt.grid(row=1, column=3, padx=5, pady=4, sticky=tk.W)
 
-        # SQL Editors Side-by-Side
         panes = ttk.Frame(self, padding=5)
         panes.pack(fill=tk.BOTH, expand=True, padx=8)
 
-        # Left Pane: Source SQL
         left_frame = ttk.LabelFrame(panes, text=" Source SQL (Editable) ", padding=4)
         left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=4)
 
@@ -184,7 +183,6 @@ class ConverterApp(tk.Tk):
         s_scroll_x.pack(side=tk.BOTTOM, fill=tk.X)
         self.txt_source.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        # Right Pane: Converted SQL
         right_frame = ttk.LabelFrame(panes, text=" Converted SQL (Editable) ", padding=4)
         right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=4)
 
@@ -196,7 +194,6 @@ class ConverterApp(tk.Tk):
         t_scroll_x.pack(side=tk.BOTTOM, fill=tk.X)
         self.txt_target.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        # Toolbar
         bar = ttk.Frame(self, padding=6)
         bar.pack(fill=tk.X, padx=10)
 
@@ -212,7 +209,6 @@ class ConverterApp(tk.Tk):
         btn_save = ttk.Button(bar, text="Save SQL...", command=self.save_output)
         btn_save.pack(side=tk.RIGHT, padx=3)
 
-        # Status & Log Console
         bottom = ttk.LabelFrame(self, text=" Status & Conversion Diagnostics ", padding=5)
         bottom.pack(fill=tk.X, padx=10, pady=5)
 
@@ -244,13 +240,11 @@ class ConverterApp(tk.Tk):
             df_tbl = pd.read_excel(excel_path, sheet_name=tbl_sheet)
             df_dict = pd.read_excel(excel_path, sheet_name=dict_sheet)
 
-            # Populate Pod dropdowns from the first row/header
             self.combo_src["values"] = [str(df_tbl.columns[0]).strip()]
             self.combo_src.current(0)
             self.combo_tgt["values"] = [str(df_tbl.columns[1]).strip()]
             self.combo_tgt.current(0)
 
-            # Table mappings
             self.table_map = {}
             for _, r in df_tbl.iterrows():
                 s = str(r.iloc[0]).strip().lower()
@@ -258,18 +252,18 @@ class ConverterApp(tk.Tk):
                 if s and t and s != "nan" and t != "nan":
                     self.table_map[s.split(".")[-1]] = t.split(".")[-1]
 
-            # Column mappings
+            # Contextual column mappings: (Source_Table, Source_Column) -> Target_Column
             self.col_map = {}
             for _, r in df_dict.iterrows():
-                st = str(r.get("Source_Table", r.iloc[0])).strip().lower()
-                sc = str(r.get("Source_Column", r.iloc[1])).strip().lower()
-                tc = str(r.get("Target_Column", r.iloc[3])).strip().lower()
+                st = str(r["Source_Table"]).strip().lower()
+                sc = str(r["Source_Column"]).strip().lower()
+                tc = str(r["Target_Column"]).strip().lower()
                 if st and sc and tc and tc != "nan":
                     self.col_map[(st, sc)] = tc
 
             self.workbook_loaded = True
             self.lbl_file.configure(
-                text=f"{excel_path.name} ({len(self.table_map)} tables, {len(self.col_map)} columns)",
+                text=f"{excel_path.name} ({len(self.table_map)} tables, {len(self.col_map)} contextual column rules)",
                 foreground="#0b6623"
             )
             self.log(f"Successfully loaded {excel_path.name}.", reset=True)
@@ -287,16 +281,16 @@ class ConverterApp(tk.Tk):
             messagebox.showwarning("Warning", "Source SQL area is empty.")
             return
 
-        transformer = SQLAstTransformer(self.table_map, self.col_map)
+        transformer = ContextualSQLTransformer(self.table_map, self.col_map)
         converted, stats, warnings = transformer.convert(sql_in)
 
         self.txt_target.delete("1.0", tk.END)
         self.txt_target.insert(tk.END, converted)
 
         self.log("=== Conversion Complete ===", reset=True)
-        self.log(f"• Tables Mapped: {stats['tables_mapped']} | Columns Mapped: {stats['columns_mapped']}")
+        self.log(f"• Tables Mapped: {stats['tables_mapped']} | Contextual Columns Mapped: {stats['columns_mapped']}")
         if warnings:
-            self.log(f"Warnings ({len(warnings)}):")
+            self.log(f"Diagnostics ({len(warnings)}):")
             for w in warnings:
                 self.log(f"  [!] {w}")
 
