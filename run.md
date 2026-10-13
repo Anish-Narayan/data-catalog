@@ -1,5 +1,4 @@
-python sql_analysis_engine.py --source-sql source_pod.sql --target-sql target_pod.sql --table-map initial_table_map.xlsx --out-excel pod_cross_mappings.xlsx
-
+python similarity.py source.sql target.sql table_map.xlsx pod_mappings.xlsx
 
 
 python sql_converter_app.py
